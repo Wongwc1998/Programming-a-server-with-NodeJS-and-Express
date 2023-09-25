@@ -3,7 +3,7 @@ const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
-const Person = require("./models/person");
+const personService = require("./models/person");
 
 app.use(express.static("dist"));
 app.use(cors());
@@ -40,7 +40,7 @@ app.get("/", (request, response) => {
 });
 
 app.get("/info", (request, response) => {
-  Person.find({}).then((persons) => {
+  personService.find({}).then((persons) => {
     response.send(
       `<p>Phonebook has info for ${
         persons.length
@@ -50,13 +50,14 @@ app.get("/info", (request, response) => {
 });
 
 app.get("/api/persons", (request, response) => {
-  Person.find({}).then((persons) => {
+  personService.find({}).then((persons) => {
     response.json(persons);
   });
 });
 
 app.get("/api/persons/:id", (request, response, next) => {
-  Person.findById(request.params.id)
+  personService
+    .findById(request.params.id)
     .then((person) => {
       if (person) {
         response.json(person);
@@ -68,7 +69,7 @@ app.get("/api/persons/:id", (request, response, next) => {
 });
 
 app.post("/api/persons", (request, response) => {
-  Person.find({}).then((persons) => {
+  personService.find({}).then((persons) => {
     const body = request.body;
     if (!body.name) {
       return response.status(400).json({
@@ -85,18 +86,19 @@ app.post("/api/persons", (request, response) => {
     }
     //validate person
 
-    const person = new Person({
+    const person = new personService({
       name: body.name,
       number: body.number,
     });
     const error = person.validateSync();
     if (error) {
+      console.log(error.message);
       return response.status(400).json({
         error: error.message,
       });
     }
 
-    Person.save(person).then((savedPerson) => {
+    personService.create(person).then((savedPerson) => {
       response.json(savedPerson);
     });
   });
@@ -104,17 +106,19 @@ app.post("/api/persons", (request, response) => {
 
 app.put("/api/persons/:id", (request, response, next) => {
   const body = request.body;
-  const person = new Person({
+  const person = new personService({
     name: body.name,
     number: body.number,
   });
   const error = person.validateSync();
   if (error) {
+    console.log(error.message);
     return response.status(400).json({
       error: error.message,
     });
   }
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  personService
+    .findByIdAndUpdate(request.params.id, person, { new: true })
     .then((updatedPerson) => {
       response.json(updatedPerson);
     })
@@ -122,7 +126,8 @@ app.put("/api/persons/:id", (request, response, next) => {
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {
-  Person.findByIdAndRemove(request.params.id)
+  personService
+    .findByIdAndRemove(request.params.id)
     .then(() => {
       response.status(204).end();
     })
