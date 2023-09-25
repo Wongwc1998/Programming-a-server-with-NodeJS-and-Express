@@ -83,12 +83,20 @@ app.post("/api/persons", (request, response) => {
         error: "name must be unique",
       });
     }
+    //validate person
 
-    const person = {
+    const person = new Person({
       name: body.name,
       number: body.number,
-    };
-    Person.create(person).then((savedPerson) => {
+    });
+    const error = person.validateSync();
+    if (error) {
+      return response.status(400).json({
+        error: error.message,
+      });
+    }
+
+    Person.save(person).then((savedPerson) => {
       response.json(savedPerson);
     });
   });
@@ -96,10 +104,16 @@ app.post("/api/persons", (request, response) => {
 
 app.put("/api/persons/:id", (request, response, next) => {
   const body = request.body;
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-  };
+  });
+  const error = person.validateSync();
+  if (error) {
+    return response.status(400).json({
+      error: error.message,
+    });
+  }
   Person.findByIdAndUpdate(request.params.id, person, { new: true })
     .then((updatedPerson) => {
       response.json(updatedPerson);
