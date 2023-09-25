@@ -3,14 +3,7 @@ const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
-const mongoose = require("mongoose");
 const Person = require("./models/person");
-const url = process.env.MONGODB_URI;
-
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-});
 
 app.use(express.static("dist"));
 app.use(cors());
@@ -116,7 +109,7 @@ app.put("/api/persons/:id", (request, response, next) => {
 
 app.delete("/api/persons/:id", (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end();
     })
     .catch((error) => next(error));
